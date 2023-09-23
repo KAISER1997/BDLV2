@@ -12,10 +12,10 @@ class synth_expert:
         '''
         self.k1 = k1
         self.k2 = k2
-        self.p_in = p_in if p_in is not None else 1.0
-        self.p_out = p_out if p_out is not None else 1/n_classes
+        self.p_in = p_in if p_in is not None else 1.0   #IGNORE
+        self.p_out = p_out if p_out is not None else 1/n_classes #IGNORE
         self.n_classes = n_classes
-        self.S = S # list : set of classes where the oracle predicts
+        self.S = S # list : set of classes where the oracle predicts #IGNORE
         self.device=device
 	
     def predict(self, input, labels): 	# expert correct in [k1,k2) classes else random across all the classes	

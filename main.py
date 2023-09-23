@@ -76,12 +76,6 @@ def evaluate(
     cls_acc_dict={0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0}
     expert_clswise_correct_list=np.zeros((len(expert_fns),10))
     expert_clswise_acc_list=np.zeros((len(expert_fns),10))
-    # for j in range(len(expert_fns)):
-    #     expert_clswise_correct_dic={0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0}
-    #     expert_clswise_correct_list.append(expert_clswise_correct_dic)
-
-    #     expert_clswise_acc_dic={0:0,1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0}
-    #     expert_clswise_acc_list.append(expert_clswise_acc_dic)
 
 
     with torch.no_grad():
@@ -229,7 +223,6 @@ def train_epoch(iters,
 
         target = target[:,0].to(device)
         input = input.to(device)
-        # print(input.shape,target,"hellp")
         rej_target=torch.zeros(target.shape).to(device)+n_classes
 
         # compute output
@@ -245,7 +238,6 @@ def train_epoch(iters,
             combo_logits=torch.cat([logits,rejector_logits],1)
             # print(loss_fn(combo_logits,rej_target.long()).shape,"DDSDS")
             lo=loss_fn(combo_logits,target)+(expert.predict(None,target)==target)*loss_fn(combo_logits,rej_target.long())
-            # print(lo.shape,'fadd')
             loss=lo.mean()
             total_loss=total_loss+loss
         optimizer.zero_grad()
@@ -369,7 +361,6 @@ def basic_expt(config):
 
     trainD, valD = cifar.read(test=False, only_id=True, data_aug=True)
     normalize = transforms.Normalize(mean = trainD.means, std = trainD.stds)
-    # print(trainD.means)
 
     contextD=ImageDataset(imgs=trainD.data,targets=trainD.labels[:,0],img_transform=transforms.Compose([
                         normalize,]))
@@ -377,12 +368,12 @@ def basic_expt(config):
     n= 3
     print("Training for n={}".format(n))
     num_experts = n
-    expert_fns=[synth_expert(0,10,10) ,synth_expert(0,5,10),synth_expert(0,1,10)]
+    expert_fns=[synth_expert(0,10,10) ,synth_expert(0,5,10),synth_expert(5,10,10)]
     trainD, valD = cifar.read(test=False, only_id=True, data_aug=True)
 
 
     N_WAY = 10 #Number of classes
-    K_SHOT = 50
+    K_SHOT = 5
     device='cuda:0'
 
     context_data_loader = data.DataLoader(contextD,
