@@ -149,24 +149,28 @@ class ENCODER(torch.nn.Module):
 
 class REJECTOR(torch.nn.Module):
 
-    def __init__(self):
+    def __init__(self,extra_res=False):
         super(REJECTOR, self).__init__()
 
         self.linear1 = torch.nn.Linear(96,48)
-        self.linear2= torch.nn.Linear(48,1)
+        self.linear2= torch.nn.Linear(48,24)
+        self.linear3=torch.nn.Linear(24,1)
         self.relu=torch.nn.ReLU()
         self.extra0=torch.nn.Linear(512,256)
         self.extra1=torch.nn.Linear(256,128)
         self.extra2=torch.nn.Linear(128,64)
         # self.extra3=torch.nn.Linear(64,10)
         self.bn1=torch.nn.BatchNorm1d(512)
-
-
+        self.res=ResNet18()
+        self.res.load_state_dict(torch.load('orares.pt'))
+        self.extra_res=extra_res
     def forward(self, x,context):#BX10 ,BX2
-        x=torch.cat([self.relu(self.extra2(self.relu(self.extra1(self.relu(self.extra0(self.bn1(x))))))),context],1)
-        x = self.linear2(self.relu(self.linear1(x)))
+        if self.extra_res:
+            x=self.res(x)[1]
+        x=torch.cat([self.relu(self.extra2(self.relu(self.extra1(self.relu(self.extra0(x)))))),context],1)
+        x = self.linear3(self.relu(self.linear2(self.relu(self.linear1(x)))))
 
         return x
-        return x
+        # return x
 
     # test()

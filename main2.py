@@ -24,10 +24,10 @@ class_names = ['Airplane', 'Automobile', 'Bird', 'Cat', 'Deer', 'Dog', 'Frog', '
 num_classes = len(class_names)
 class2idx = {class_name: idx for idx, class_name in enumerate(class_names)}
 idx2class = {idx: class_name for class_name, idx in class2idx.items()}
-pretrain_model=ResNet18()
-pretrain_model.load_state_dict(torch.load('orares.pt'))
-pretrain_model.eval()
-pretrain_model=pretrain_model.to('cuda:0')
+# pretrain_model=ResNet18()
+# pretrain_model.load_state_dict(torch.load('orares.pt'))
+# pretrain_model.eval()
+# pretrain_model=pretrain_model.to('cuda:0')
 
 
 def set_seed(seed):
@@ -40,8 +40,8 @@ def set_seed(seed):
 
 def hack_pretrain(input):
     feat=input
-    with torch.no_grad():
-        logit,feat=pretrain_model(input)
+    # with torch.no_grad():
+    #     logit,feat=pretrain_model(input)
     return(feat)
 
 
@@ -286,7 +286,7 @@ def train_epoch(iters,
             print("Total Loss every 20 Runs-",total_loss.item())
     scheduler1.step()
     # scheduler2.step()
-    # scheduler3.step()
+    scheduler3.step()
     return iters, np.average(epoch_train_loss)
 
 class MultipleOptimizer(object):
@@ -330,11 +330,11 @@ def train(model_net,
                                 momentum=0.9, nesterov=True,
                                 weight_decay=config["weight_decay"])
     optimizer2=torch.optim.SGD(params2, config["lr"]*10,
-                                momentum=0.9, nesterov=True,
-                                weight_decay=config["weight_decay"])
-    optimizer3=torch.optim.SGD(params3, config["lr"]*20,
-                                momentum=0.9, nesterov=True,
-                                weight_decay=config["weight_decay"])
+                                momentum=0.9, nesterov=True)
+                                #weight_decay=config["weight_decay"])
+    optimizer3=torch.optim.SGD(params3, config["lr"]*10,
+                                momentum=0.9, nesterov=True)#,
+                                # weight_decay=config["weight_decay"])
     criterion = nn.CrossEntropyLoss(reduction='none')
     loss_fn = criterion #getattr(criterion, config["loss_type"])
     scheduler1 = torch.optim.lr_scheduler.CosineAnnealingLR(
@@ -423,10 +423,10 @@ def basic_expt(config):
     contextD=ImageDataset(imgs=trainD.data,targets=trainD.labels[:,0],img_transform=transforms.Compose([
                         normalize,]))
 
-    n= 4
+    n= 6
     print("Training for n={}".format(n))
     num_experts = n
-    expert_fns=[synth_expert(0,3,10),synth_expert(3,6,10),synth_expert(6,9,10),synth_expert(7,10,10)]
+    expert_fns=[synth_expert(0,2,10),synth_expert(2,4,10),synth_expert(6,8,10),synth_expert(8,10,10),synth_expert(1,3,10),synth_expert(5,7,10)]
     trainD, valD = cifar.read(test=False, only_id=True, data_aug=True)
 
 
@@ -448,7 +448,7 @@ def basic_expt(config):
     model_net=ResNet18()
     # model_net.load_state_dict(torch.load('orares.pt'))
     model_encoder=ENCODER()
-    model_rejector=REJECTOR()
+    model_rejector=REJECTOR(True)
     train(model_net,model_encoder,model_rejector,trainD,fixed_context,valD,expert_fns,device,config)
 
 if __name__ == "__main__":
@@ -457,7 +457,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--alpha", type=float, default=1.0,
                         help="scaling parameter for the loss function, default=1.0.")
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--epochs", type=int, default=150)
     parser.add_argument("--patience", type=int, default=20,
                         help="number of patience steps for early stopping the training.")
     parser.add_argument("--expert_type", type=str, default="predict",
