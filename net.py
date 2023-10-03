@@ -136,12 +136,12 @@ class ENCODER(torch.nn.Module):
     def __init__(self):
         super(ENCODER, self).__init__()
 
-        self.linear1 = torch.nn.Linear(256,128)
-        self.linear_mid=torch.nn.Linear(128,64)
+        self.linear1 = torch.nn.Linear(1024,256)
+        self.linear_mid=torch.nn.Linear(256,64)
         self.linear2= torch.nn.Linear(64,32)
         self.relu=torch.nn.ReLU()
         self.bn1=torch.nn.BatchNorm1d(12)
-        self.embed=nn.Embedding(20, 128)
+        self.embed=nn.Embedding(20, 512)
 
 
     def forward(self, y): #BX4

@@ -333,7 +333,8 @@ def train(model_net,
                                 momentum=0.9, nesterov=True)
                                 #weight_decay=config["weight_decay"])
     optimizer3=torch.optim.SGD(params3, config["lr"],
-                                momentum=0.9, nesterov=True)#,
+                                momentum=0.9, nesterov=True)
+                                # weight_decay=config["weight_decay"])#,
     criterion = nn.CrossEntropyLoss(reduction='none')
     loss_fn = criterion #getattr(criterion, config["loss_type"])
     scheduler1 = torch.optim.lr_scheduler.CosineAnnealingLR(
