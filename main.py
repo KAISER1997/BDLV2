@@ -426,7 +426,7 @@ def basic_expt(config):
     print("Training for n={}".format(n))
     num_experts = n
     expert_fns=[]
-    for u in range(2):
+    for u in range(10):
         expert_fns.append(synth_expert0(u,u+1,10))
     # [synth_expert(0,2,10),synth_expert(2,4,10),synth_expert(6,8,10),synth_expert(8,10,10),synth_expert(1,3,10),synth_expert(5,7,10)]
     trainD, valD = cifar.read(test=False, only_id=True, data_aug=True)

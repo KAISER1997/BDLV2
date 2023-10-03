@@ -136,7 +136,7 @@ class ENCODER(torch.nn.Module):
     def __init__(self):
         super(ENCODER, self).__init__()
 
-        self.linear1 = torch.nn.Linear(2,128)
+        self.linear1 = torch.nn.Linear(256,128)
         self.linear_mid=torch.nn.Linear(128,64)
         self.linear2= torch.nn.Linear(64,32)
         self.relu=torch.nn.ReLU()
@@ -145,15 +145,15 @@ class ENCODER(torch.nn.Module):
 
 
     def forward(self, y): #BX4
-        # y[:,-1:]=y[:,-1:]+10
-        # z=y[:,-2:].long()
-        # z=self.embed(z) #B X 2 X 128
-        # v=torch.cat([z[:,0,:],z[:,1,:]],1)
+        y[:,-1:]=y[:,-1:]+10
+        z=y[:,-2:].long()
+        z=self.embed(z) #B X 2 X 128
+        v=torch.cat([z[:,0,:],z[:,1,:]],1)
         # print("HELLO",v.shape)
         
-        # x = self.linear2(self.relu(self.linear_mid(self.relu(self.linear1(v))))) # HACK  USED CORRECT THIS
+        x = self.linear2(self.relu(self.linear_mid(self.relu(self.linear1(v))))) # HACK  USED CORRECT THIS
 
-        x = self.linear2(self.relu(self.linear_mid(self.relu(self.linear1(y[:,-2:]))))) #Older version HACK  USED CORRECT THIS
+        # x = self.linear2(self.relu(self.linear_mid(self.relu(self.linear1(y[:,-2:]))))) #Older version HACK  USED CORRECT THIS
         return x
 
 class REJECTOR(torch.nn.Module):
