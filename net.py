@@ -101,8 +101,9 @@ class ResNet(nn.Module):
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
-        # out = self.linear(out)
-        return self.linear(out),out
+        x = self.linear(out)
+        x=(x-x.mean())/(x.std())
+        return x,out
 
 
 def ResNet18():
@@ -135,16 +136,24 @@ class ENCODER(torch.nn.Module):
     def __init__(self):
         super(ENCODER, self).__init__()
 
-        self.linear1 = torch.nn.Linear(2,60)
-        self.linear_mid=torch.nn.Linear(120,60)
-        self.linear2= torch.nn.Linear(60,32)
+        self.linear1 = torch.nn.Linear(2,128)
+        self.linear_mid=torch.nn.Linear(128,64)
+        self.linear2= torch.nn.Linear(64,32)
         self.relu=torch.nn.ReLU()
         self.bn1=torch.nn.BatchNorm1d(12)
+        self.embed=nn.Embedding(20, 128)
 
 
     def forward(self, y): #BX4
+        # y[:,-1:]=y[:,-1:]+10
+        # z=y[:,-2:].long()
+        # z=self.embed(z) #B X 2 X 128
+        # v=torch.cat([z[:,0,:],z[:,1,:]],1)
+        # print("HELLO",v.shape)
+        
+        # x = self.linear2(self.relu(self.linear_mid(self.relu(self.linear1(v))))) # HACK  USED CORRECT THIS
 
-        x = self.linear2(self.relu((self.relu(self.linear1(y[:,-2:]))))) # HACK  USED CORRECT THIS
+        x = self.linear2(self.relu(self.linear_mid(self.relu(self.linear1(y[:,-2:]))))) #Older version HACK  USED CORRECT THIS
         return x
 
 class REJECTOR(torch.nn.Module):
@@ -152,13 +161,13 @@ class REJECTOR(torch.nn.Module):
     def __init__(self,extra_res=False):
         super(REJECTOR, self).__init__()
 
-        self.linear1 = torch.nn.Linear(96,48)
-        self.linear2= torch.nn.Linear(48,24)
-        self.linear3=torch.nn.Linear(24,1)
+        self.linear1 = torch.nn.Linear(64,32)
+        self.linear2= torch.nn.Linear(32,16)
+        self.linear3=torch.nn.Linear(16,1)
         self.relu=torch.nn.ReLU()
-        self.extra0=torch.nn.Linear(512,256)
-        self.extra1=torch.nn.Linear(256,128)
-        self.extra2=torch.nn.Linear(128,64)
+        self.extra0=torch.nn.Linear(512,128)
+        # self.extra1=torch.nn.Linear(256,128)
+        self.extra2=torch.nn.Linear(128,32)
         # self.extra3=torch.nn.Linear(64,10)
         self.bn1=torch.nn.BatchNorm1d(512)
         self.res=ResNet18()
@@ -167,8 +176,9 @@ class REJECTOR(torch.nn.Module):
     def forward(self, x,context):#BX10 ,BX2
         if self.extra_res:
             x=self.res(x)[1]
-        x=torch.cat([self.relu(self.extra2(self.relu(self.extra1(self.relu(self.extra0(x)))))),context],1)
+        x=torch.cat([self.relu(self.extra2(self.relu(self.relu(self.extra0(x))))),self.relu(context)],1)
         x = self.linear3(self.relu(self.linear2(self.relu(self.linear1(x)))))
+        x=(x-x.mean())/(x.std())
 
         return x
         # return x
